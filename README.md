@@ -207,7 +207,7 @@ Knobs **1–4** weight audio features from your voice. Knobs **9–12** balance 
 
 If you reference this project academically:
 
-**Pingan Yao**, “An Interactive System for Gesture-Controlled Vocal Improvisation with Somax2: Cultural Narrative in Minotaur’s Lament,” *Sound and Music Computing (SMC)*, 2026.
+**Yao, P. (2026)**. An Interactive System for Gesture-Controlled Vocal Improvisation with Somax2: Cultural Narrative in Minotaur's Lament. *Zenodo*. [https://doi.org/10.5281/zenodo.18792999](url)
 
 ---
 
