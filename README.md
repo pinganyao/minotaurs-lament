@@ -1,50 +1,32 @@
 # Minotaur's Lament
 
-**Minotaur's Lament** is an interactive system for **gesture-controlled vocal improvisation with [Somax2](https://www.ircam.fr/)**. Hand gestures captured with **MediaPipe** (Python) drive live vocal processing in **Max/MSP** via **Open Sound Control (OSC)**. The processed voice feeds Somax2's **audio influencer**, so gesture—not only timbre and harmony—actively shapes the AI's corpus-based generation.
+Interactive **gesture-controlled vocal improvisation** with **[Somax2](https://www.ircam.fr/)**. **MediaPipe** hand tracking (Python) sends **OSC** to **Max/MSP**, where live vocals are processed and routed into Somax2’s **audio influencer**—so hand motion shapes what the AI hears and how it improvises.
 
-The work situates this pipeline in a **culturally grounded performance**: Greek mythology (Minotaur, labyrinth) and **Ancient Greek lament** traditions (solo vocal mourning, heightened gesture) inform the aesthetic; Somax2 layers an **atonal, labyrinthine** MIDI corpus through synthesizers in a DAW.
+The project name refers to a performance aesthetic grounded in **Greek mythology** (Minotaur, labyrinth) and **lament** traditions: solo voice, extended vocalisation, and an **atonal** Somax layer driven by **MIDI corpora** and DAW synths.
 
-This repository contains the **Python → OSC** trackers and the **Max 9** patch used in the research. For the academic framing, system evaluation, and bibliography, see the paper cited below.
-
----
-
-## Demonstration
-
-Video of a live improvisation using Somax2 with gesture control: **[Minotaur's Lament on YouTube](https://www.youtube.com/watch?v=s2owfob3t9w)**.
+**Demo:** [Minotaur's Lament on YouTube](https://www.youtube.com/watch?v=s2owfob3t9w)
 
 ---
 
-## Publication
+## Repository contents
 
-If you use this project or cite the performance system, please reference:
+| File | Purpose |
+|------|---------|
+| `hand_to_osc.py` | Single-hand MediaPipe tracking → OSC (`/hand_y`, `/hand_open`) |
+| `face_to_osc.py` | Optional face landmarks → OSC (`/mouth_open`, `/right_eye`) for custom mappings |
+| `minotaur's _lament.maxpat` | Max patch: OSC in, vocal processing, Somax2 players, audio/MIDI influencers |
 
-**Pingan Yao**, “An Interactive System for Gesture-Controlled Vocal Improvisation with Somax2: Cultural Narrative in Minotaur’s Lament,” *Sound and Music Computing (SMC)*, 2026 (Paper 43).
-
-Open access (CC BY 3.0). Source code for this research: [github.com/pinganyao/minotaurs-lament](https://github.com/pinganyao/minotaurs-lament).
-
----
-
-## What’s in this repository
-
-| File | Role |
-|------|------|
-| `hand_to_osc.py` | **Primary control path**: single-hand MediaPipe tracking → OSC (`/hand_y`, `/hand_open`) |
-| `face_to_osc.py` | **Optional**: face mesh landmarks → OSC (`/mouth_open`, `/right_eye`) for experiments or alternate mappings |
-| `minotaur's _lament.maxpat` | Max/MSP patch: OSC in, vocal processing, Somax2 players, audio/MIDI influencers |
-
-The paper focuses on **hand** tracking; `face_to_osc.py` is provided as an additional starting point for face-driven control.
+Hand tracking is the main control path; `face_to_osc.py` is optional.
 
 ---
 
-## System architecture (overview)
+## Architecture
 
-At a high level, the performer combines:
-
-1. **Voice** — microphone into Max; processed and sent to Somax2’s audio influencer.
-2. **Hand gestures** — webcam → Python (MediaPipe Hands) → OSC → Max (pitch/frequency shift and wet gain).
-3. **Somax2** — two **players**: one influenced by **audio** (gesture-shaped vocals), one by **MIDI** (keyboard).
-4. **Hardware MIDI** — e.g. **AKAI MIDImix** mapped to Somax2 parameters (influence dimensions, layer balance, output).
-5. **DAW (e.g. Logic Pro)** — receives vocals (optionally with effects such as flanger) and **virtual MIDI** from Somax2 for synthesizer tracks.
+1. **Voice** — Microphone → Max → processed signal → Somax2 **audio influencer**.
+2. **Gestures** — Webcam → Python (MediaPipe Hands) → OSC → Max (**frequency shift** and wet/dry mix).
+3. **Somax2** — Two **players**: one follows **audio** (your processed voice), one follows **MIDI** (keyboard).
+4. **MIDI controller** — e.g. **AKAI MIDImix** mapped to Somax2 parameters (influence weights, layer balance, output).
+5. **DAW** — e.g. **Logic Pro** for virtual MIDI from Somax2 to instrument tracks and optional vocal FX (flanger, etc.).
 
 ```mermaid
 flowchart LR
@@ -74,32 +56,27 @@ flowchart LR
 
 ---
 
-## Prerequisites
+## Requirements
 
 ### Software
 
-- **Python 3** with:
-  - `opencv-python`
-  - `mediapipe`
-  - `numpy`
-  - `python-osc`
-- **Cycling ’74 Max** (patch saved from **Max 9**; newer versions may open it—verify Somax2 compatibility).
-- **Somax2** for Max (IRCAM)—including `somax.player.app`, `somax.audioinfluencer.app`, `somax.midiinfluencer.app` subpatchers referenced in this patch.
-- **Digital Audio Workstation** (performance used **Logic Pro**) for synth voices and optional vocal FX—adapt if you use another DAW.
+- **Python 3**: `opencv-python`, `mediapipe`, `numpy`, `python-osc`
+- **Cycling ’74 Max** (patch saved from Max **9**; confirm Somax2 works with your version)
+- **Somax2** for Max (IRCAM)—`somax.player.app`, `somax.audioinfluencer.app`, `somax.midiinfluencer.app` must resolve on the Max search path
+- **DAW** (optional but typical): Logic Pro or any host that can receive MIDI from Max and process vocals
 
-### Hardware (as in the paper)
+### Hardware
 
-- Webcam (**1080p @ 30 fps** used in tests).
-- Audio interface with low-latency drivers.
-- Optional but recommended for the described workflow: **MIDI keyboard** (player 2 influence + extra part), **AKAI MIDImix** (or similar) for Somax2 parameter control.
+- Webcam (1080p @ 30 fps works well)
+- Audio interface with stable low-latency drivers
+- **MIDI keyboard** for the second player / extra layer
+- **MIDI controller** with knobs and faders (MIDImix-style layout fits the suggested mapping below)
 
 ---
 
 ## Installation
 
-### 1. Python environment
-
-From the repository root:
+### Python
 
 ```bash
 python3 -m venv .venv
@@ -107,70 +84,63 @@ source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install opencv-python mediapipe numpy python-osc
 ```
 
-### 2. Max / Somax2
+### Max / Somax2
 
-Install Somax2 according to IRCAM’s instructions and ensure its package files are on Max’s search path so the patch’s `bpatcher` objects resolve (`somax.player.app.maxpat`, etc.).
+Install Somax2 per IRCAM’s docs and ensure the package is on Max’s search path so embedded `bpatcher` objects load (`somax.player.app.maxpat`, etc.).
 
-### 3. Open the patch
+### Patch
 
-Open **`minotaur's _lament.maxpat`** in Max. Confirm:
+Open **`minotaur's _lament.maxpat`**. Check:
 
-- **UDP receive** on port **32000** (matches the Python scripts).
-- Audio/MIDI routing to your interface and, if applicable, to your DAW.
+- **`udpreceive`** on port **32000** (must match the Python scripts)
+- Audio and MIDI routing to your interface and DAW
 
 ---
 
-## Gesture parameters and OSC protocol
+## OSC protocol
 
-The Python client sends to **`127.0.0.1:32000`** (localhost).
+Python sends to **`127.0.0.1:32000`** over UDP.
 
-### `hand_to_osc.py` (main path)
+### `hand_to_osc.py`
 
-| OSC address | Range | Meaning |
-|-------------|-------|---------|
-| `/hand_y` | 0–127 | **Vertical hand position** from the wrist (landmark 0). Uses the **middle 80%** of the frame height to reduce edge jitter; mirrored video for natural left-right interaction. |
-| `/hand_open` | 0–127 | **Thumb–index span** (landmarks 4 and 8): Euclidean distance in normalized image space, mapped so **wide spread ≈ high value**, **pinch ≈ low value**. (The paper refers to this as *pinch distance* with inverted numeric mapping to the same gesture.) |
+| Address | Range | Meaning |
+|---------|-------|---------|
+| `/hand_y` | 0–127 | Wrist height (landmark 0); middle **80%** of frame height used to reduce edge flicker; camera preview is mirrored |
+| `/hand_open` | 0–127 | Thumb–index span (landmarks 4 & 8): **wide** ≈ high, **pinch** ≈ low |
 
-Implementation notes:
+Only **one hand** is tracked (`max_num_hands=1`). Values are integers **0–127** for easy scaling in Max (e.g. `/ 127.`).
 
-- Only **one hand** is tracked (`max_num_hands=1`) so the non-gesture hand does not disturb the stream.
-- Values are sent as **integers 0–127** for straightforward scaling inside Max (e.g. divide by 127. for 0–1).
+### Vocal processing in Max
 
-### Max patch: vocal processing
-
-The paper describes:
-
-- **Frequency shift** of approximately **−200 Hz to +200 Hz** driven by vertical hand position.
-- **Composite output**: clean voice plus wet pitch-shifted voice, with the wet path scaled by the pinch/open parameter (paper: \(V_{\mathrm{out}} = 0.7 V_{\mathrm{in}} + g \cdot V_{\mathrm{wet}}\)).
-
-The bundled patch implements processing with Max objects such as **`freqshift~`** (see the patch for exact routing). Always verify levels and latency on your machine.
+- Vertical hand position maps to roughly **−200 Hz … +200 Hz** frequency shift (see **`freqshift~`** in the patch).
+- Output blends **dry** and **wet** paths; wet amount follows `/hand_open`. Target behaviour is **`Vout = 0.7 · Vin + g · Vwet`**—confirm gains in the patch for your setup.
 
 ### `face_to_osc.py` (optional)
 
-| OSC address | Range | Meaning |
-|-------------|-------|---------|
-| `/mouth_open` | 0–127 | Mouth opening derived from lip landmarks |
-| `/right_eye` | 0–127 | Right-eye openness (inverted normalized eye aperture) |
+| Address | Range | Meaning |
+|---------|-------|---------|
+| `/mouth_open` | 0–127 | Mouth opening from lip landmarks |
+| `/right_eye` | 0–127 | Right-eye openness (inverted normalized aperture) |
 
-Wire these in Max only if you extend the patch to use them.
+Wire these only if you extend the Max patch.
 
 ---
 
-## Somax2 layout (conceptual)
+## Somax2 setup
 
 ### Two players
 
-- **Player 1 — Audio influencer**: listens to the **gesture-processed vocal** stream. This is the main feedback loop: moving your hand changes the spectral/temporal content Somax2 reacts to (pitch, onset, chroma, MFCC, etc.).
-- **Player 2 — MIDI influencer**: driven by **MIDI keyboard** input so you can seed or steer a second layer.
+- **Player 1 — Audio influencer:** listens to **gesture-processed vocals**. Hand motion changes spectral content Somax2 analyses (pitch, onset, chroma, MFCC, etc.).
+- **Player 2 — MIDI influencer:** driven by **MIDI keyboard** for a second layer or foil.
 
-Using **MIDI corpora** for both players (as in the paper) lets you shape timbre in the DAW with virtual instruments while keeping Somax2’s structure.
+**MIDI corpora** for both players pair cleanly with DAW virtual instruments while Somax2 handles structure and matching.
 
-### AKAI MIDImix mapping (from the paper)
+### Suggested AKAI MIDImix mapping
 
-Hardware controls were grouped into three zones:
+Group controls into three zones:
 
-| Control | Somax2 parameter | Typical range |
-|---------|------------------|----------------|
+| Control | Somax2 parameter | Range |
+|---------|------------------|--------|
 | Knob 1 | Pitch (influence dimension) | {0, 1} |
 | Knob 2 | Onset | {0, 1} |
 | Knob 3 | Chroma | [0, 1] |
@@ -184,66 +154,70 @@ Hardware controls were grouped into three zones:
 | Fader 3 | Quality | [0, 1] |
 | Fader 4 | Probability | [0, 1] |
 
-Knobs **1–4** weight how much each **audio feature** of your voice affects matching. Knobs **9–12** balance **internal vs external** melodic/harmonic influence—critical for how strongly **gesture-driven pitch material** steers the player. Faders tune **phrase length**, **continuity**, **match strictness**, and **density**.
-
-Replicate this mapping in Max’s MIDI learn / routing to match your installation.
+Knobs **1–4** weight audio features from your voice. Knobs **9–12** balance **internal vs external** melodic/harmonic influence—how strongly **gesture-shaped pitch** steers the player. Faders adjust phrase behaviour and density. Recreate this in Max’s MIDI routing or learn to match your controller.
 
 ---
 
-## Step-by-step: running a session
+## Running a session
 
-1. **Audio** — Connect mic and headphones; set buffer size as low as stable for your CPU (see *Troubleshooting*).
-2. **Somax2** — Load your **corpora** into each player (MIDI corpora if following the paper’s synth workflow); configure influencers as in the patch.
-3. **Max** — Open `minotaur's _lament.maxpat`; enable DSP; confirm OSC **udpreceive 32000** and routing to **`freqshift~`** / mixer matches your desired gains.
-4. **Python** — Run `python hand_to_osc.py`; a window shows the camera feed with **Y** and **Open** values. Press **Esc** to quit.
-5. **Gesture** — Move one hand vertically for **pitch/frequency shift**; open and close thumb and index for **wet level** (expressivity and timbral variation fed to Somax2).
-6. **MIDI** — Use the keyboard for player 2; adjust **MIDImix** (or your mapping) to sculpt responsiveness and density.
-7. **DAW** — Route Somax2 MIDI to instrument tracks; optionally process vocals (e.g. **flanger** for labyrinthine width, as in the performance).
-
----
-
-## Artistic context (short)
-
-- **Minotaur** — Mythological hybrid figure; voice imagined as low, animal-like; **pitch shift** extends range toward “roar” or heightened lament.
-- **Labyrinth** — Nonlinear, fragmented navigation mirrored by **evolving vocals**, **pauses** (affecting onset detection), and **Somax2 variability**.
-- **Lament** — Solo, improvised vocal mourning (**góos**-like); often wordless extended vocalization; **melisma** and **microtonal** inflections in modern Greek lament traditions inform style.
-
-The paper develops these threads with references to scholarship and reception history.
+1. Set up **audio** (mic, headphones, lowest stable buffer—see troubleshooting).
+2. Load **corpora** in Somax2 and wire influencers as in the patch.
+3. Open the **Max** patch, enable DSP, verify OSC and **`freqshift~`** routing.
+4. Run **`python hand_to_osc.py`** — preview shows Y and Open; **Esc** quits.
+5. **Gesture:** hand **up/down** for shift; **thumb–index** for wet level.
+6. Play **MIDI** for player 2; tweak **MIDImix** (or your mapping).
+7. In the **DAW**, route Somax MIDI to synths; add vocal FX if you like (e.g. flanger for space).
 
 ---
 
-## Observations from the study
+## Artistic notes
 
-- Gesture control was reported as **engaging** and **more interactive** than typical Somax2-only setups for many participants.
-- **Pitch-shifted** vs clean input increased **triggered events** and **variability** in Somax2 under controlled trials—gesture-mediated processing materially affects the agent.
+- **Minotaur** — low, animal-like vocality; frequency shift widens range toward “roar” or strained lament.
+- **Labyrinth** — fragmented phrasing, pauses (they affect onset detection), evolving Somax layers.
+- **Lament** — solo, often wordless improvisation; melismatic and microtonal inflections fit the style.
+
+---
+
+## Design notes
+
+- Gesture control tends to feel **more immediate** than voice-only Somax2 sessions because **processing changes** what the audio influencer hears.
+- **Pitch-shifted / processed** input usually produces **more varied** Somax2 triggering than dry voice alone—worth experimenting with influence knob settings.
 
 ---
 
 ## Troubleshooting
 
-| Issue | Suggestions |
+| Issue | What to try |
 |-------|-------------|
-| **Latency** (gesture ↔ sound or voice I/O) | Reduce audio buffer; simplify GPU/CPU load; close unnecessary apps; use wired audio if possible. |
-| **Solo performance overload** | Hands + voice + keyboard + MIDImix is demanding; consider **foot controllers** for Somax parameters (noted in the paper). |
-| **OSC not moving parameters** | Confirm Python and Max use the **same port (32000)** and firewall allows **UDP localhost**; check Max **OSC-route** for `/hand_y` and `/hand_open`. |
-| **Camera index** | If `cv2.VideoCapture(0)` is wrong, try `1`, `2`, … for your OS device order. |
-| **Somax2 bpatcher missing** | Install/update Somax2; verify Max file paths include the Somax package. |
+| Latency | Smaller buffer; lighter CPU/GPU load; wired audio |
+| Too much to control solo | **Foot controllers** for Somax parameters; simplify mappings |
+| OSC dead | Same port **32000** in Python and Max; allow UDP on localhost; check **OSC-route** for `/hand_y`, `/hand_open` |
+| Wrong camera | Change `cv2.VideoCapture(0)` to `1`, `2`, … |
+| Somax patchers missing | Reinstall Somax2; check Max **File Preferences** / search path |
 
 ---
 
 ## Acknowledgments
 
-From the SMC paper: thanks to **Tilemachos Moussas** for foundational work on kinesthesis-based gesture control with Somax2 in Greek theatrical contexts.
+**Tilemachos Moussas** — kinesthesis-based gesture control with Somax2 in theatrical contexts.
+
+---
+
+## Citation
+
+If you reference this project academically:
+
+**Pingan Yao**, “An Interactive System for Gesture-Controlled Vocal Improvisation with Somax2: Cultural Narrative in Minotaur’s Lament,” *Sound and Music Computing (SMC)*, 2026.
 
 ---
 
 ## License
 
-Academic use and attribution encouraged. The original article is open access under **Creative Commons Attribution 3.0 Unported**. For code licensing, see the repository’s `LICENSE` if present.
+See **`LICENSE`** in the repository if provided. For the accompanying SMC article, check the publisher’s terms (open access CC BY where applicable).
 
 ---
 
 ## See also
 
-- [Somax2 / IRCAM](https://www.ircam.fr/) — documentation and technical reports on influencers and players.
-- [MediaPipe Hands](https://google.github.io/mediapipe/solutions/hands.html) — landmark indices and model behavior.
+- [Somax2 / IRCAM](https://www.ircam.fr/)
+- [MediaPipe Hands](https://google.github.io/mediapipe/solutions/hands.html)
